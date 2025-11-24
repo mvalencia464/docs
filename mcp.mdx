@@ -1,0 +1,555 @@
+---
+title: "Model Context Protocol (MCP)"
+description: "Connect AI agents to your tools and data with the Model Context Protocol"
+icon: "plug-circle"
+---
+
+<Info>
+**What is MCP?**
+
+The Model Context Protocol (MCP) is an open standard that enables AI agents to securely connect to external tools, data sources, and services. Think of it as a universal adapter that lets AI assistants interact with your business systems.
+</Info>
+
+## Overview
+
+MCP provides a standardized way for AI agents (like Antigravity, Claude, or custom assistants) to:
+
+- 🔌 **Connect to tools** - Execute actions in external systems
+- 📊 **Access data** - Read from databases, APIs, and files
+- 🔄 **Maintain context** - Keep conversation state across sessions
+- 🔒 **Secure access** - Control permissions and authentication
+
+## Why Use MCP?
+
+<CardGroup cols={2}>
+  <Card title="Standardized Integration" icon="puzzle-piece">
+    One protocol works with any MCP-compatible AI agent
+  </Card>
+  <Card title="Secure by Design" icon="shield-check">
+    Built-in authentication and permission controls
+  </Card>
+  <Card title="Easy to Extend" icon="code">
+    Create custom servers for your specific needs
+  </Card>
+  <Card title="Open Source" icon="code-branch">
+    Community-driven with growing ecosystem
+  </Card>
+</CardGroup>
+
+## Common Use Cases
+
+### Business Automation
+- **CRM Integration**: Let AI agents create contacts, update deals, send emails
+- **Project Management**: Create tasks, update statuses, assign team members
+- **Analytics**: Query business metrics, generate reports, visualize data
+
+### Development Workflows
+- **Code Generation**: AI generates code that integrates with your systems
+- **Testing**: Automated test creation and execution
+- **Deployment**: AI-assisted deployment and monitoring
+
+### Customer Support
+- **Ticket Management**: Create, update, and resolve support tickets
+- **Knowledge Base**: Search and update documentation
+- **Customer Data**: Access customer history and preferences
+
+## Available MCP Servers
+
+### Official Servers
+
+<AccordionGroup>
+  <Accordion title="GitHub MCP Server" icon="github">
+    **Purpose**: Repository management, PR creation, issue tracking
+    
+    **Capabilities**:
+    - Create and manage repositories
+    - Create pull requests and issues
+    - Search code and commits
+    - Manage GitHub Actions workflows
+    
+    **Installation**:
+    ```bash
+    npm install -g @modelcontextprotocol/server-github
+    ```
+    
+    **Configuration**:
+    ```json
+    {
+      "mcpServers": {
+        "github": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-github"],
+          "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+          }
+        }
+      }
+    }
+    ```
+    
+    [View Documentation](https://github.com/modelcontextprotocol/servers/tree/main/src/github)
+  </Accordion>
+
+  <Accordion title="Filesystem MCP Server" icon="folder">
+    **Purpose**: File and directory operations
+    
+    **Capabilities**:
+    - Read and write files
+    - List directory contents
+    - Search files
+    - Monitor file changes
+    
+    **Installation**:
+    ```bash
+    npm install -g @modelcontextprotocol/server-filesystem
+    ```
+    
+    **Configuration**:
+    ```json
+    {
+      "mcpServers": {
+        "filesystem": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+          "env": {
+            "ALLOWED_DIRECTORIES": "/path/to/allowed/dir"
+          }
+        }
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="PostgreSQL MCP Server" icon="database">
+    **Purpose**: Database queries and operations
+    
+    **Capabilities**:
+    - Execute SQL queries
+    - Manage database schema
+    - Read table data
+    - Perform CRUD operations
+    
+    **Installation**:
+    ```bash
+    npm install -g @modelcontextprotocol/server-postgres
+    ```
+    
+    **Configuration**:
+    ```json
+    {
+      "mcpServers": {
+        "postgres": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-postgres"],
+          "env": {
+            "POSTGRES_CONNECTION_STRING": "postgresql://user:pass@localhost/db"
+          }
+        }
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Slack MCP Server" icon="slack">
+    **Purpose**: Slack workspace integration
+    
+    **Capabilities**:
+    - Send messages to channels
+    - Read channel history
+    - Manage users and channels
+    - Upload files
+    
+    **Installation**:
+    ```bash
+    npm install -g @modelcontextprotocol/server-slack
+    ```
+    
+    **Configuration**:
+    ```json
+    {
+      "mcpServers": {
+        "slack": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-slack"],
+          "env": {
+            "SLACK_BOT_TOKEN": "xoxb-your-token",
+            "SLACK_TEAM_ID": "your-team-id"
+          }
+        }
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Community Servers
+
+<CardGroup cols={2}>
+  <Card title="Google Drive" icon="google-drive">
+    Access and manage Google Drive files
+  </Card>
+  <Card title="Notion" icon="book">
+    Read and write Notion pages and databases
+  </Card>
+  <Card title="Airtable" icon="table">
+    Query and update Airtable bases
+  </Card>
+  <Card title="Stripe" icon="stripe">
+    Manage payments and subscriptions
+  </Card>
+</CardGroup>
+
+## Creating Custom MCP Servers
+
+You can create custom MCP servers for your specific business needs.
+
+### Basic Server Structure
+
+<CodeGroup>
+```typescript server.ts
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
+// Create server instance
+const server = new Server({
+  name: 'custom-business-server',
+  version: '1.0.0',
+}, {
+  capabilities: {
+    tools: {},
+  },
+});
+
+// Define a tool
+server.setRequestHandler('tools/list', async () => {
+  return {
+    tools: [
+      {
+        name: 'create_lead',
+        description: 'Create a new lead in the CRM',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            email: { type: 'string' },
+            phone: { type: 'string' },
+          },
+          required: ['name', 'email'],
+        },
+      },
+    ],
+  };
+});
+
+// Handle tool execution
+server.setRequestHandler('tools/call', async (request) => {
+  if (request.params.name === 'create_lead') {
+    const { name, email, phone } = request.params.arguments;
+    
+    // Your business logic here
+    const result = await createLeadInCRM({ name, email, phone });
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Lead created successfully: ${result.id}`,
+        },
+      ],
+    };
+  }
+  
+  throw new Error(`Unknown tool: ${request.params.name}`);
+});
+
+// Start server
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+```javascript package.json
+{
+  "name": "custom-business-mcp-server",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "custom-business-server": "./build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0"
+  }
+}
+```
+</CodeGroup>
+
+### Use Cases for Custom Servers
+
+<Tabs>
+  <Tab title="GoHighLevel Integration">
+    Create an MCP server for GoHighLevel operations:
+    
+    ```typescript
+    // Tools you could implement:
+    - create_contact
+    - update_opportunity
+    - send_sms
+    - schedule_appointment
+    - add_to_workflow
+    ```
+    
+    This would let AI agents manage your GHL account directly.
+  </Tab>
+
+  <Tab title="Business Analytics">
+    Create an MCP server for your analytics:
+    
+    ```typescript
+    // Tools you could implement:
+    - get_revenue_metrics
+    - generate_sales_report
+    - analyze_customer_churn
+    - forecast_growth
+    ```
+    
+    AI agents could answer business questions with real data.
+  </Tab>
+
+  <Tab title="Internal Tools">
+    Create an MCP server for internal operations:
+    
+    ```typescript
+    // Tools you could implement:
+    - create_invoice
+    - schedule_meeting
+    - assign_task
+    - update_inventory
+    ```
+    
+    Automate routine business tasks through AI.
+  </Tab>
+</Tabs>
+
+## MCP Configuration
+
+### Client Configuration
+
+Most MCP clients use a JSON configuration file:
+
+<CodeGroup>
+```json ~/.config/mcp/config.json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxx"
+      }
+    },
+    "custom-business": {
+      "command": "node",
+      "args": ["./path/to/custom-server.js"],
+      "env": {
+        "API_KEY": "your-api-key",
+        "DATABASE_URL": "postgresql://..."
+      }
+    }
+  }
+}
+```
+</CodeGroup>
+
+### Environment Variables
+
+<Warning>
+**Security Best Practice**
+
+Never hardcode API keys or secrets in configuration files. Use environment variables:
+
+```bash
+export GITHUB_TOKEN="ghp_xxxxx"
+export GHL_API_KEY="your-key"
+export DATABASE_URL="postgresql://..."
+```
+
+Then reference them in your MCP config:
+```json
+{
+  "env": {
+    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+  }
+}
+```
+</Warning>
+
+## Using MCP with AI Agents
+
+### With Antigravity
+
+See our [Antigravity Setup Guide](/ai-tools/antigravity) for detailed MCP configuration.
+
+```bash
+gemini chat --mcp-config=~/.config/mcp/config.json
+```
+
+### With Claude Desktop
+
+1. Open Claude Desktop settings
+2. Navigate to "Developer" tab
+3. Add MCP server configuration
+4. Restart Claude Desktop
+
+### With Custom Agents
+
+```typescript
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+
+const client = new Client({
+  name: 'my-agent',
+  version: '1.0.0',
+});
+
+// Connect to MCP server
+await client.connect(transport);
+
+// List available tools
+const tools = await client.request({
+  method: 'tools/list',
+});
+
+// Call a tool
+const result = await client.request({
+  method: 'tools/call',
+  params: {
+    name: 'create_lead',
+    arguments: {
+      name: 'John Doe',
+      email: 'john@example.com',
+    },
+  },
+});
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Security First" icon="lock">
+    - Use environment variables for secrets
+    - Implement proper authentication
+    - Validate all inputs
+    - Limit permissions to minimum required
+  </Card>
+  
+  <Card title="Error Handling" icon="triangle-exclamation">
+    - Provide clear error messages
+    - Log errors for debugging
+    - Handle network failures gracefully
+    - Implement retry logic
+  </Card>
+  
+  <Card title="Performance" icon="gauge">
+    - Cache frequently accessed data
+    - Implement rate limiting
+    - Use async operations
+    - Monitor server health
+  </Card>
+  
+  <Card title="Documentation" icon="book">
+    - Document all tools clearly
+    - Provide usage examples
+    - Keep schemas up to date
+    - Version your APIs
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Server Not Connecting">
+    **Symptoms**: MCP server fails to start or connect
+    
+    **Solutions**:
+    1. Check server is installed: `npm list -g @modelcontextprotocol/server-name`
+    2. Verify configuration syntax: `cat config.json | jq`
+    3. Check environment variables are set
+    4. Review server logs for errors
+    5. Ensure correct Node.js version (18+)
+  </Accordion>
+
+  <Accordion title="Authentication Errors">
+    **Symptoms**: 401 Unauthorized or 403 Forbidden errors
+    
+    **Solutions**:
+    1. Verify API tokens are valid and not expired
+    2. Check token has required scopes/permissions
+    3. Ensure environment variables are loaded correctly
+    4. Test API credentials directly (e.g., with curl)
+  </Accordion>
+
+  <Accordion title="Tool Not Found">
+    **Symptoms**: "Unknown tool" or tool not listed
+    
+    **Solutions**:
+    1. Verify server is running: check process list
+    2. List available tools to confirm registration
+    3. Check tool name matches exactly (case-sensitive)
+    4. Restart MCP client after server changes
+  </Accordion>
+
+  <Accordion title="Performance Issues">
+    **Symptoms**: Slow responses or timeouts
+    
+    **Solutions**:
+    1. Implement caching for frequently accessed data
+    2. Add rate limiting to prevent overload
+    3. Optimize database queries
+    4. Use connection pooling
+    5. Monitor server resource usage
+  </Accordion>
+</AccordionGroup>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="MCP Specification" icon="file-lines" href="https://modelcontextprotocol.io/docs/specification">
+    Official protocol specification and standards
+  </Card>
+  
+  <Card title="Server Examples" icon="code" href="https://github.com/modelcontextprotocol/servers">
+    Official MCP server implementations
+  </Card>
+  
+  <Card title="SDK Documentation" icon="book-open" href="https://modelcontextprotocol.io/docs/sdk">
+    TypeScript SDK for building servers
+  </Card>
+  
+  <Card title="Community" icon="users" href="https://github.com/modelcontextprotocol/servers/discussions">
+    Join the MCP community discussions
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<Steps>
+  <Step title="Set Up Antigravity">
+    Follow our [Antigravity Setup Guide](/ai-tools/antigravity) to configure MCP with Google's AI agent
+  </Step>
+
+  <Step title="Install MCP Servers">
+    Install the MCP servers you need for your workflow (GitHub, Filesystem, etc.)
+  </Step>
+
+  <Step title="Create Custom Server">
+    Build a custom MCP server for your business-specific needs
+  </Step>
+
+  <Step title="Integrate with Tools">
+    Connect MCP to your existing tools and workflows
+  </Step>
+</Steps>
+
+<Check>
+**Ready to Get Started?**
+
+MCP enables powerful AI-driven automation for your business. Start with the official servers, then build custom integrations as needed.
+</Check>
