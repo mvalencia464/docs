@@ -1,0 +1,580 @@
+---
+title: "Antigravity Setup"
+description: "Complete guide to setting up Google Antigravity with Gemini 3 Agent for AI-powered development"
+icon: "rocket"
+---
+
+<Info>
+**What is Antigravity?**
+
+Google Antigravity is an advanced AI coding assistant powered by the Gemini 3 Agent. It provides intelligent code generation, debugging, and project management capabilities with deep integration into your development workflow.
+</Info>
+
+## Overview
+
+Antigravity combines the power of Google's Gemini AI with specialized tools for software development. This guide will help you set up Antigravity for maximum productivity.
+
+### Key Features
+
+<CardGroup cols={2}>
+  <Card title="Intelligent Code Generation" icon="code">
+    Generate production-ready code with context awareness
+  </Card>
+  <Card title="MCP Server Integration" icon="plug">
+    Connect to GitHub, Chrome DevTools, and other services
+  </Card>
+  <Card title="Browser Automation" icon="browser">
+    Visual verification and testing through Chrome DevTools
+  </Card>
+  <Card title="Project Context" icon="folder-tree">
+    Deep understanding of your entire codebase
+  </Card>
+</CardGroup>
+
+## Prerequisites
+
+Before setting up Antigravity, ensure you have:
+
+- **Google Account** with Gemini access
+- **Terminal** access (macOS, Linux, or WSL on Windows)
+- **Node.js** LTS version (18 or 20) installed
+- **Git** installed and configured
+
+## Installation
+
+<Steps>
+  <Step title="Install Antigravity CLI">
+    Install the Antigravity command-line interface:
+    
+    ```bash
+    npm install -g @google/antigravity
+    ```
+    
+    <Check>
+    Verify installation:
+    ```bash
+    antigravity --version
+    ```
+    </Check>
+  </Step>
+
+  <Step title="Authenticate with Google">
+    Sign in to your Google account:
+    
+    ```bash
+    antigravity auth login
+    ```
+    
+    This will open a browser window for authentication. Follow the prompts to grant necessary permissions.
+  </Step>
+
+  <Step title="Verify Setup">
+    Test your installation:
+    
+    ```bash
+    antigravity chat "Hello, can you help me?"
+    ```
+    
+    You should see a response from the Gemini agent.
+  </Step>
+</Steps>
+
+## MCP Server Configuration
+
+Model Context Protocol (MCP) servers extend Antigravity's capabilities by connecting to external tools and services.
+
+### Required MCP Servers
+
+<AccordionGroup>
+  <Accordion title="GitHub MCP Server" icon="github">
+    **Purpose**: Repository management, PR creation, issue tracking
+    
+    **Setup**:
+    ```bash
+    npm install -g @modelcontextprotocol/server-github
+    ```
+    
+    **Configuration** (`~/.antigravity/mcp-config.json`):
+    ```json
+    {
+      "mcpServers": {
+        "github": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-github"],
+          "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+          }
+        }
+      }
+    }
+    ```
+    
+    <Warning>
+    Create a GitHub Personal Access Token at: https://github.com/settings/tokens
+    
+    Required scopes:
+    - `repo` (full control of private repositories)
+    - `workflow` (update GitHub Action workflows)
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Chrome DevTools MCP Server" icon="chrome">
+    **Purpose**: Browser automation, visual verification, testing
+    
+    **Setup**:
+    ```bash
+    npm install -g @modelcontextprotocol/server-chrome-devtools
+    ```
+    
+    **Configuration** (`~/.antigravity/mcp-config.json`):
+    ```json
+    {
+      "mcpServers": {
+        "chrome-devtools": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-chrome-devtools"]
+        }
+      }
+    }
+    ```
+    
+    <Tip>
+    Chrome DevTools MCP allows Antigravity to:
+    - Take screenshots and snapshots
+    - Interact with web pages
+    - Debug frontend issues
+    - Verify UI changes
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Filesystem MCP Server" icon="folder">
+    **Purpose**: Advanced file operations and workspace management
+    
+    **Setup**:
+    ```bash
+    npm install -g @modelcontextprotocol/server-filesystem
+    ```
+    
+    **Configuration** (`~/.antigravity/mcp-config.json`):
+    ```json
+    {
+      "mcpServers": {
+        "filesystem": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+          "env": {
+            "ALLOWED_DIRECTORIES": "/Users/yourname/projects"
+          }
+        }
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Complete MCP Configuration Example
+
+Create or edit `~/.antigravity/mcp-config.json`:
+
+<CodeGroup>
+```json ~/.antigravity/mcp-config.json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+      }
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-chrome-devtools"]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": {
+        "ALLOWED_DIRECTORIES": "/Users/yourname/projects:/Users/yourname/Documents"
+      }
+    }
+  }
+}
+```
+</CodeGroup>
+
+<Warning>
+**Security Note**
+
+Never commit MCP configuration files containing API tokens to version control. Add to `.gitignore`:
+
+```bash
+echo "mcp-config.json" >> .gitignore
+```
+</Warning>
+
+## Starting Antigravity with MCP
+
+To start Antigravity with MCP server support:
+
+```bash
+gemini chat --mcp-config=~/.antigravity/mcp-config.json
+```
+
+Or create an alias for convenience:
+
+```bash
+# Add to ~/.zshrc or ~/.bashrc
+alias ag="gemini chat --mcp-config=~/.antigravity/mcp-config.json"
+```
+
+Then simply run:
+```bash
+ag
+```
+
+## Project-Specific Configuration
+
+For project-specific rules and constraints, create a `.cursor` directory in your project root:
+
+```bash
+mkdir -p .cursor
+```
+
+### Architecture Rules
+
+Create `.cursor/rules.md` to define project constraints:
+
+<CodeGroup>
+```markdown .cursor/rules.md
+# Project Architecture Rules
+
+## Technology Stack
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS v4
+- **Language**: TypeScript (strict mode)
+
+## Patterns
+- Use Server Actions for all data mutations
+- No client-side API routes
+- Validate all inputs with Zod
+
+## File Organization
+- Components in `src/components/`
+- Server Actions in `src/actions/`
+- Types in `src/types/`
+
+## Code Style
+- Use named exports
+- Prefer functional components
+- Use TypeScript strict mode
+```
+</CodeGroup>
+
+<Tip>
+Antigravity will automatically read and follow rules defined in `.cursor/rules.md` when working on your project.
+</Tip>
+
+## Workflow Integration
+
+### Starting a New Chat Session
+
+When beginning work on a feature, prime Antigravity with context:
+
+```
+Read architecture/rules.md before generating any code. 
+Ensure you strictly follow the constraints regarding 
+Server Actions and Tailwind v4 syntax.
+```
+
+### Using MCP Servers
+
+<Tabs>
+  <Tab title="GitHub Operations">
+    ```
+    Create a new branch called 'feature/user-auth'
+    Create a PR for the current branch
+    List all open issues with label 'bug'
+    ```
+  </Tab>
+
+  <Tab title="Browser Testing">
+    ```
+    Open http://localhost:3000 in Chrome
+    Take a screenshot of the homepage
+    Click the login button and verify the form appears
+    ```
+  </Tab>
+
+  <Tab title="File Operations">
+    ```
+    Search for all files using the old API endpoint
+    Refactor all components to use the new pattern
+    Create a new component following our architecture rules
+    ```
+  </Tab>
+</Tabs>
+
+### Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Be Specific" icon="bullseye">
+    Provide clear, detailed instructions with context
+  </Card>
+  <Card title="Reference Rules" icon="book">
+    Point to architecture docs for consistency
+  </Card>
+  <Card title="Verify Changes" icon="check">
+    Ask Antigravity to test and verify its changes
+  </Card>
+  <Card title="Iterate" icon="rotate">
+    Refine requests based on results
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="MCP Server Not Connecting">
+    **Symptoms**: Error messages about MCP server connection failures
+    
+    **Solutions**:
+    1. Verify MCP packages are installed globally:
+       ```bash
+       npm list -g @modelcontextprotocol/server-github
+       ```
+    
+    2. Check MCP config file syntax:
+       ```bash
+       cat ~/.antigravity/mcp-config.json | jq
+       ```
+    
+    3. Ensure environment variables are set correctly
+    
+    4. Restart Antigravity with verbose logging:
+       ```bash
+       gemini chat --mcp-config=~/.antigravity/mcp-config.json --verbose
+       ```
+  </Accordion>
+
+  <Accordion title="GitHub Token Issues">
+    **Symptoms**: 401 Unauthorized errors when using GitHub MCP
+    
+    **Solutions**:
+    1. Verify token has correct scopes at https://github.com/settings/tokens
+    2. Check token is correctly set in MCP config
+    3. Ensure token hasn't expired
+    4. Try regenerating the token
+  </Accordion>
+
+  <Accordion title="Chrome DevTools Not Working">
+    **Symptoms**: Browser automation commands fail
+    
+    **Solutions**:
+    1. Ensure Chrome is installed and up to date
+    2. Close all Chrome instances before starting
+    3. Check Chrome isn't running in headless mode
+    4. Verify Chrome DevTools MCP server is installed:
+       ```bash
+       npm list -g @modelcontextprotocol/server-chrome-devtools
+       ```
+  </Accordion>
+
+  <Accordion title="Node Version Conflicts">
+    **Symptoms**: Errors about unsupported Node version
+    
+    **Solutions**:
+    1. Check current Node version:
+       ```bash
+       node --version
+       ```
+    
+    2. Switch to LTS version (18 or 20):
+       ```bash
+       nvm use 20
+       ```
+    
+    3. Set default Node version:
+       ```bash
+       nvm alias default 20
+       ```
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Configuration
+
+### Custom MCP Servers
+
+You can create custom MCP servers for project-specific needs:
+
+```javascript
+// custom-mcp-server.js
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+
+const server = new Server({
+  name: 'custom-server',
+  version: '1.0.0',
+});
+
+server.setRequestHandler('custom_action', async (request) => {
+  // Your custom logic here
+  return { result: 'success' };
+});
+
+server.connect();
+```
+
+Add to MCP config:
+```json
+{
+  "mcpServers": {
+    "custom": {
+      "command": "node",
+      "args": ["./custom-mcp-server.js"]
+    }
+  }
+}
+```
+
+### Environment-Specific Configs
+
+Create different MCP configs for different environments:
+
+```bash
+# Development
+~/.antigravity/mcp-config.dev.json
+
+# Production
+~/.antigravity/mcp-config.prod.json
+
+# Testing
+~/.antigravity/mcp-config.test.json
+```
+
+Use with:
+```bash
+gemini chat --mcp-config=~/.antigravity/mcp-config.dev.json
+```
+
+## Tips for Maximum Productivity
+
+<Steps>
+  <Step title="Set Up Aliases">
+    Create shell aliases for common commands:
+    
+    ```bash
+    # Add to ~/.zshrc or ~/.bashrc
+    alias ag="gemini chat --mcp-config=~/.antigravity/mcp-config.json"
+    alias ag-dev="gemini chat --mcp-config=~/.antigravity/mcp-config.dev.json"
+    alias ag-prod="gemini chat --mcp-config=~/.antigravity/mcp-config.prod.json"
+    ```
+  </Step>
+
+  <Step title="Create Project Templates">
+    Maintain template `.cursor/rules.md` files for different project types:
+    
+    ```bash
+    ~/templates/nextjs-rules.md
+    ~/templates/react-rules.md
+    ~/templates/python-rules.md
+    ```
+    
+    Copy to new projects:
+    ```bash
+    cp ~/templates/nextjs-rules.md .cursor/rules.md
+    ```
+  </Step>
+
+  <Step title="Document Common Patterns">
+    Keep a personal knowledge base of effective prompts and patterns:
+    
+    ```markdown
+    # My Antigravity Patterns
+    
+    ## Creating a new feature
+    "Create a new feature for [X] following our architecture rules..."
+    
+    ## Debugging
+    "Analyze the error in [file] and suggest fixes..."
+    
+    ## Refactoring
+    "Refactor [component] to use [pattern]..."
+    ```
+  </Step>
+
+  <Step title="Use Task Boundaries">
+    For complex work, Antigravity uses task boundaries to organize progress:
+    
+    ```
+    Create an implementation plan for user authentication,
+    then implement it following our Next.js patterns.
+    ```
+    
+    Antigravity will:
+    1. Create a plan document
+    2. Request your review
+    3. Implement the changes
+    4. Verify the implementation
+  </Step>
+</Steps>
+
+## Integration with Other Tools
+
+### VS Code / Cursor
+
+Antigravity works alongside your existing editor:
+
+1. Use Antigravity for complex refactoring and feature implementation
+2. Use Cursor/VS Code for quick edits and code review
+3. Let Antigravity handle boilerplate and repetitive tasks
+
+### Git Workflow
+
+Antigravity can manage your Git workflow:
+
+```
+Create a feature branch for user authentication
+Implement the feature
+Run tests and fix any issues
+Create a PR with detailed description
+```
+
+### CI/CD Integration
+
+Reference CI/CD configs in your architecture rules:
+
+```markdown
+## Deployment
+- All changes must pass CI tests
+- Use GitHub Actions for deployment
+- Deploy to staging before production
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Cursor Setup" icon="arrow-pointer" href="/ai-tools/cursor">
+    Configure Cursor for documentation workflow
+  </Card>
+  <Card title="Architecture Rules" icon="book" href="/architecture/rules">
+    Learn about project constraints and patterns
+  </Card>
+  <Card title="GoHighLevel Integration" icon="plug" href="/integrations/gohighlevel">
+    Set up API integrations with Antigravity
+  </Card>
+  <Card title="Mintlify Docs" icon="book-open" href="https://mintlify.com/docs">
+    Explore Mintlify documentation features
+  </Card>
+</CardGroup>
+
+## Resources
+
+- **Gemini Documentation**: [https://ai.google.dev/gemini-api/docs](https://ai.google.dev/gemini-api/docs)
+- **MCP Protocol**: [https://modelcontextprotocol.io](https://modelcontextprotocol.io)
+- **GitHub MCP Server**: [https://github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers)
+
+<Check>
+**You're All Set!**
+
+Antigravity is now configured and ready to supercharge your development workflow. Start a chat session and begin building!
+</Check>

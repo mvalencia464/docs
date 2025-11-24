@@ -1,0 +1,640 @@
+---
+title: 'Bulk Custom Fields Setup'
+description: 'Automate GoHighLevel custom field and value creation across multiple locations using Python'
+icon: 'layer-group'
+---
+
+<Info>
+**Use Case: Multi-Location Setup**
+
+These Python scripts allow you to batch create custom fields and custom values across multiple GoHighLevel locations simultaneously, saving hours of manual configuration work.
+</Info>
+
+## Overview
+
+When setting up GoHighLevel for your business, you often need to create the same custom fields and values across multiple locations. Doing this manually through the UI is time-consuming and error-prone. These Python scripts automate the entire process using the GHL API.
+
+### What You'll Accomplish
+
+- ✅ Create custom fields (dropdowns, multi-select) across all locations
+- ✅ Create custom values (reusable data like phone numbers, URLs, pricing)
+- ✅ Prevent duplicate field creation with built-in checks
+- ✅ Handle rate limiting automatically
+- ✅ Process multiple locations in one run
+
+<Note>
+**Prerequisites**
+
+Before using these scripts, ensure you have:
+- Python 3.7+ installed
+- A GoHighLevel Private Integration token with appropriate scopes
+- Location IDs for all locations you want to configure
+</Note>
+
+## Script 1: Custom Fields Creation
+
+Custom fields allow you to capture structured data from your contacts. This script creates dropdown and multi-select fields.
+
+### Use Cases
+
+- **Primary Service**: Single-select dropdown for main service interest
+- **Additional Services**: Multi-select checkbox for add-on services
+- **Lead Source**: Track where leads came from
+- **Project Type**: Categorize different types of projects
+
+### Field Types Supported
+
+| Data Type | GHL API Value | Description | Example |
+|-----------|---------------|-------------|---------|
+| Dropdown (Single) | `SINGLE_OPTIONS` | User selects one option | Primary Service |
+| Checkbox (Multiple) | `MULTIPLE_OPTIONS` | User selects multiple options | Additional Services |
+| Text | `TEXT` | Free-form text input | Project Notes |
+| Number | `NUMERICAL` | Numeric values | Budget Amount |
+
+### Script: `create_ghl_custom_fields.py`
+
+<CodeGroup>
+```python create_ghl_custom_fields.py
+import requests
+import time
+
+# -------------------------------------------------------------------
+# 1. API Configuration
+# -------------------------------------------------------------------
+# Replace these with your actual values
+ACCESS_TOKEN = "pit-your-token-here"
+LOCATION_IDS = [
+    "location-id-1",
+    "location-id-2",
+    # Add more location IDs here as needed
+]
+
+BASE_URL_TEMPLATE = "https://services.leadconnectorhq.com/locations/{location_id}/customFields"
+HEADERS = {
+    "Authorization": f"Bearer {ACCESS_TOKEN}",
+    "Version": "2021-07-28",
+    "Content-Type": "application/json"
+}
+
+def create_custom_fields():
+    """
+    Batch create Custom Fields in GoHighLevel (GHL) for multiple locations.
+    """
+    
+    # -------------------------------------------------------------------
+    # 3. Special Instruction for Standard Fields
+    # -------------------------------------------------------------------
+    # NOTE: Property Address, Email, and Phone must be mapped to GHL system fields 
+    # (contact.email, contact.phone, contact.address1) during the contact creation process.
+    # We do NOT create custom fields for these.
+
+    for location_id in LOCATION_IDS:
+        print(f"Processing Location ID: {location_id}")
+        url = BASE_URL_TEMPLATE.format(location_id=location_id)
+
+        # -------------------------------------------------------------------
+        # 2. Field Requirements (JSON Payloads)
+        # -------------------------------------------------------------------
+
+        # Field A: "Primary Service"
+        primary_service_payload = {
+            "name": "Primary Service",
+            "dataType": "SINGLE_OPTIONS",
+            "options": [
+                "Christmas Lights",
+                "Mowing",
+                "Cleanups",
+                "Summer Maintenance",
+                "Winter Services"
+            ]
+        }
+
+        # Field B: "Additional Services"
+        additional_services_payload = {
+            "name": "Additional Services",
+            "dataType": "MULTIPLE_OPTIONS",
+            "options": [
+                "Spring Cleanup",
+                "Weekly Mowing",
+                "Fertilizer Program",
+                "Weed Control",
+                "Fall Cleanup",
+                "Debris Removal",
+                "Snow Plowing (Starts at $55)",
+                "Plow Driveway",
+                "Walkway Clearing",
+                "Sanding (Starts at $85)",
+                "Ice Control",
+                "Roofline Lighting",
+                "Tree Wrapping",
+                "Wreaths & Garland",
+                "Removal & Storage",
+                "Timer/Automation"
+            ]
+        }
+
+        fields_to_create = [primary_service_payload, additional_services_payload]
+
+        for field in fields_to_create:
+            try:
+                print(f"  Creating field: {field['name']}...")
+                response = requests.post(url, headers=HEADERS, json=field)
+                
+                # Check for HTTP errors
+                response.raise_for_status()
+                
+                print(f"  [SUCCESS] Created field '{field['name']}': {response.json()}")
+                
+            except requests.exceptions.RequestException as e:
+                print(f"  [ERROR] Failed to create field '{field['name']}': {e}")
+                if 'response' in locals() and response is not None:
+                     print(f"  Response content: {response.text}")
+
+            # Handle Rate Limiting: Sleep 0.5s between requests
+            time.sleep(0.5)
+
+if __name__ == "__main__":
+    create_custom_fields()
+```
+</CodeGroup>
+
+### Configuration Steps
+
+<Steps>
+  <Step title="Get Your API Token">
+    1. Go to **Settings → Other Settings → Private Integrations**
+    2. Create a new integration or use existing
+    3. Copy the token (starts with `pit-`)
+    4. Required scopes:
+       - `locations.write` or `locations/customFields.write`
+       - `locations.read`
+  </Step>
+
+  <Step title="Get Location IDs">
+    1. Go to **Settings → Business Profile** in each location
+    2. Copy the Location ID from the URL or settings
+    3. Add all IDs to the `LOCATION_IDS` array
+  </Step>
+
+  <Step title="Customize Fields">
+    Modify the `fields_to_create` array to match your business needs:
+    ```python
+    # Example: Add a new field
+    lead_source_payload = {
+        "name": "Lead Source",
+        "dataType": "SINGLE_OPTIONS",
+        "options": [
+            "Website",
+            "Referral",
+            "Google Ads",
+            "Facebook",
+            "Direct Mail"
+        ]
+    }
+    
+    fields_to_create = [
+        primary_service_payload,
+        additional_services_payload,
+        lead_source_payload  # Add your new field
+    ]
+    ```
+  </Step>
+
+  <Step title="Run the Script">
+    ```bash
+    python create_ghl_custom_fields.py
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+**Important: Standard Contact Fields**
+
+Do NOT create custom fields for:
+- Email (use `contact.email`)
+- Phone (use `contact.phone`)
+- Address (use `contact.address1`)
+
+These are built-in GHL system fields and should be mapped during contact creation, not created as custom fields.
+</Warning>
+
+## Script 2: Custom Values Creation
+
+Custom values are reusable data snippets you can reference in workflows, templates, and automations. Think of them as global variables for your GHL account.
+
+### Use Cases
+
+- **Support Phone**: Display consistent phone number across all communications
+- **Booking Links**: Centralized calendar booking URLs
+- **Pricing**: Standard pricing that can be updated in one place
+- **Brand Assets**: Colors, logos, taglines
+- **Legal Text**: Terms of service, privacy policy snippets
+
+### Script: `create_ghl_custom_values.py`
+
+<CodeGroup>
+```python create_ghl_custom_values.py
+import requests
+import time
+
+# -------------------------------------------------------------------
+# 1. API Configuration
+# -------------------------------------------------------------------
+# Credentials reused from previous task
+ACCESS_TOKEN = "pit-your-token-here"
+LOCATION_IDS = [
+    "location-id-1",
+    # Add more location IDs here as needed
+]
+
+BASE_URL_TEMPLATE = "https://services.leadconnectorhq.com/locations/{location_id}/customValues"
+HEADERS = {
+    "Authorization": f"Bearer {ACCESS_TOKEN}",
+    "Version": "2021-07-28",
+    "Content-Type": "application/json"
+}
+
+def create_custom_values():
+    """
+    Batch create Custom Values in GoHighLevel (GHL) for multiple locations.
+    Includes duplicate prevention logic.
+    """
+
+    for location_id in LOCATION_IDS:
+        print(f"Processing Location ID: {location_id}")
+        url = BASE_URL_TEMPLATE.format(location_id=location_id)
+
+        # -------------------------------------------------------------------
+        # 3. Crucial Logic (Duplicate Prevention)
+        # -------------------------------------------------------------------
+        # First, GET existing custom values to check for duplicates
+        existing_values = {}
+        try:
+            print("  Fetching existing custom values...")
+            response = requests.get(url, headers=HEADERS)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Map existing names to their IDs (or just mark as existing)
+            if 'customValues' in data:
+                for cv in data['customValues']:
+                    existing_values[cv['name']] = cv
+            
+            print(f"  Found {len(existing_values)} existing custom values.")
+            
+        except requests.exceptions.RequestException as e:
+            print(f"  [ERROR] Failed to fetch existing values: {e}")
+            if 'response' in locals() and response is not None:
+                 print(f"  Response content: {response.text}")
+            continue # Skip to next location if we can't check duplicates
+
+        # -------------------------------------------------------------------
+        # 2. Custom Values List (JSON Payload)
+        # -------------------------------------------------------------------
+        values_to_create = [
+            {
+                "name": "Support Phone",
+                "value": "(555) 123-4567"
+            },
+            {
+                "name": "Booking Link",
+                "value": "https://api.leadconnectorhq.com/widget/booking/YOUR_CALENDAR_ID"
+            },
+            {
+                "name": "Base Price - Mowing",
+                "value": "$50"
+            },
+            {
+                "name": "Base Price - Plowing",
+                "value": "$75"
+            },
+            {
+                "name": "Brand Color Primary",
+                "value": "#10B981"
+            }
+        ]
+
+        for cv in values_to_create:
+            name = cv['name']
+            
+            if name in existing_values:
+                print(f"  Skipped: '{name}' already exists.")
+                continue
+
+            try:
+                print(f"  Creating value: '{name}'...")
+                response = requests.post(url, headers=HEADERS, json=cv)
+                
+                # Check for HTTP errors
+                response.raise_for_status()
+                
+                print(f"  [SUCCESS] Created value '{name}': {response.json()}")
+                
+            except requests.exceptions.RequestException as e:
+                print(f"  [ERROR] Failed to create value '{name}': {e}")
+                if 'response' in locals() and response is not None:
+                     print(f"  Response content: {response.text}")
+
+            # -------------------------------------------------------------------
+            # 4. Rate Limiting
+            # -------------------------------------------------------------------
+            time.sleep(0.5)
+
+if __name__ == "__main__":
+    create_custom_values()
+```
+</CodeGroup>
+
+### Key Features
+
+<CardGroup cols={2}>
+  <Card title="Duplicate Prevention" icon="shield-check">
+    Script checks existing values before creating new ones to prevent errors
+  </Card>
+  <Card title="Rate Limiting" icon="gauge">
+    Built-in 0.5s delay between requests to respect API limits
+  </Card>
+  <Card title="Error Handling" icon="triangle-exclamation">
+    Comprehensive error messages with API response details
+  </Card>
+  <Card title="Multi-Location" icon="location-dot">
+    Process unlimited locations in a single run
+  </Card>
+</CardGroup>
+
+### Configuration Steps
+
+<Steps>
+  <Step title="Customize Values">
+    Edit the `values_to_create` array:
+    ```python
+    values_to_create = [
+        {
+            "name": "Company Name",
+            "value": "Your Business LLC"
+        },
+        {
+            "name": "Emergency Contact",
+            "value": "(555) 999-8888"
+        },
+        {
+            "name": "Website URL",
+            "value": "https://yourbusiness.com"
+        }
+    ]
+    ```
+  </Step>
+
+  <Step title="Run the Script">
+    ```bash
+    python create_ghl_custom_values.py
+    ```
+  </Step>
+
+  <Step title="Verify in GHL">
+    1. Go to **Settings → Custom Values** in each location
+    2. Confirm all values were created
+    3. Test using them in a workflow or template
+  </Step>
+</Steps>
+
+## Using Custom Values in GHL
+
+Once created, you can reference custom values anywhere in GHL using this syntax:
+
+```
+{{custom_values.Support Phone}}
+{{custom_values.Booking Link}}
+{{custom_values.Base Price - Mowing}}
+```
+
+### Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Email Templates">
+    ```html
+    <p>Questions? Call us at {{custom_values.Support Phone}}</p>
+    <a href="{{custom_values.Booking Link}}">Schedule Your Appointment</a>
+    ```
+  </Accordion>
+
+  <Accordion title="SMS Workflows">
+    ```
+    Thanks for your interest! Book your free consultation: {{custom_values.Booking Link}}
+    ```
+  </Accordion>
+
+  <Accordion title="Pricing Automation">
+    ```
+    Your estimated price for mowing: {{custom_values.Base Price - Mowing}}
+    ```
+  </Accordion>
+
+  <Accordion title="Branded Communications">
+    ```html
+    <div style="background-color: {{custom_values.Brand Color Primary}}">
+      <!-- Your content -->
+    </div>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Complete Workflow
+
+Here's the recommended order for setting up a new GHL location:
+
+<Steps>
+  <Step title="Create Private Integration">
+    Set up your API access with required scopes
+  </Step>
+
+  <Step title="Run Custom Fields Script">
+    Create all custom fields for data capture
+    ```bash
+    python create_ghl_custom_fields.py
+    ```
+  </Step>
+
+  <Step title="Run Custom Values Script">
+    Set up reusable values for templates and workflows
+    ```bash
+    python create_ghl_custom_values.py
+    ```
+  </Step>
+
+  <Step title="Configure Form Integration">
+    Follow the [GoHighLevel Integration](/integrations/gohighlevel) guide to connect your forms
+  </Step>
+
+  <Step title="Build Workflows">
+    Create automation workflows that use your custom fields and values
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized Error">
+    **Cause**: Invalid or expired API token
+    
+    **Solution**:
+    - Verify token starts with `pit-`
+    - Check token hasn't been revoked in GHL
+    - Ensure Private Integration is enabled
+    - Verify required scopes are granted
+  </Accordion>
+
+  <Accordion title="403 Forbidden Error">
+    **Cause**: Insufficient permissions
+    
+    **Solution**:
+    - Add `locations.write` or `locations/customFields.write` scope
+    - Add `locations/customValues.write` scope for values script
+    - Regenerate token after adding scopes
+  </Accordion>
+
+  <Accordion title="Field Already Exists Error">
+    **Cause**: Attempting to create duplicate field
+    
+    **Solution**:
+    - Check existing fields in GHL UI first
+    - Modify field names in script to be unique
+    - Delete old fields if you want to recreate them
+  </Accordion>
+
+  <Accordion title="Rate Limit Exceeded">
+    **Cause**: Too many API requests too quickly
+    
+    **Solution**:
+    - Increase `time.sleep()` value (try 1.0 instead of 0.5)
+    - Process fewer locations per run
+    - Wait 1 minute and retry
+  </Accordion>
+
+  <Accordion title="Invalid Location ID">
+    **Cause**: Wrong location ID format or non-existent location
+    
+    **Solution**:
+    - Copy location ID directly from GHL Settings
+    - Ensure you have access to the location
+    - Check for extra spaces or characters
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Customization
+
+### Adding More Field Types
+
+```python
+# Text field
+text_field = {
+    "name": "Project Notes",
+    "dataType": "TEXT"
+}
+
+# Number field
+number_field = {
+    "name": "Budget Amount",
+    "dataType": "NUMERICAL"
+}
+
+# Date field
+date_field = {
+    "name": "Preferred Start Date",
+    "dataType": "DATE"
+}
+
+# URL field
+url_field = {
+    "name": "Portfolio Link",
+    "dataType": "URL"
+}
+```
+
+### Conditional Field Creation
+
+```python
+# Only create fields for specific locations
+PRODUCTION_LOCATIONS = ["loc-id-1", "loc-id-2"]
+STAGING_LOCATIONS = ["loc-id-3"]
+
+for location_id in LOCATION_IDS:
+    if location_id in PRODUCTION_LOCATIONS:
+        # Create production fields
+        fields_to_create = [primary_service_payload, additional_services_payload]
+    else:
+        # Create test fields
+        fields_to_create = [test_field_payload]
+```
+
+### Logging Results
+
+```python
+import json
+from datetime import datetime
+
+# Save results to file
+results = {
+    "timestamp": datetime.now().isoformat(),
+    "locations_processed": len(LOCATION_IDS),
+    "fields_created": [],
+    "errors": []
+}
+
+# After each successful creation
+results["fields_created"].append({
+    "location": location_id,
+    "field": field['name']
+})
+
+# Save to file
+with open('ghl_setup_results.json', 'w') as f:
+    json.dump(results, f, indent=2)
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Test First" icon="flask">
+    Run scripts on a test location before processing all locations
+  </Card>
+  <Card title="Backup Configuration" icon="floppy-disk">
+    Export existing fields/values before running scripts
+  </Card>
+  <Card title="Version Control" icon="code-branch">
+    Keep scripts in Git to track changes over time
+  </Card>
+  <Card title="Document Fields" icon="book">
+    Maintain a spreadsheet of all custom fields and their purposes
+  </Card>
+</CardGroup>
+
+<Note>
+**Related Documentation**
+
+- [GoHighLevel Form Integration](/integrations/gohighlevel) - Connect your React forms to GHL
+- [Architecture Rules](/architecture/rules) - GHL integration patterns and constraints
+</Note>
+
+## Download Scripts
+
+The complete Python scripts are available in this repository:
+
+- [`create_ghl_custom_fields.py`](file:///Users/mauriciovalencia/Desktop/stokedocs/integrations/scripts/create_ghl_custom_fields.py)
+- [`create_ghl_custom_values.py`](file:///Users/mauriciovalencia/Desktop/stokedocs/integrations/scripts/create_ghl_custom_values.py)
+
+<Warning>
+**Security Reminder**
+
+Never commit your API tokens to version control. Use environment variables or a `.env` file:
+
+```python
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ACCESS_TOKEN = os.getenv("GHL_API_TOKEN")
+LOCATION_IDS = os.getenv("GHL_LOCATION_IDS").split(",")
+```
+</Warning>
