@@ -48,7 +48,8 @@
             "group": "Integrations",
             "pages": [
               "integrations/gohighlevel",
-              "integrations/gohighlevel-bulk-setup"
+              "integrations/gohighlevel-bulk-setup",
+              "integrations/cloudflare-turnstile"
             ]
           },
           {
