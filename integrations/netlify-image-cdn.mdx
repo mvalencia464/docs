@@ -1,0 +1,127 @@
+---
+title: 'Netlify Image CDN'
+description: 'Optimize image delivery with Netlify Image CDN in Vite/React'
+icon: 'image'
+---
+
+This guide details how to implement Netlify Image CDN in a Vite/React project to optimize image delivery (resize, format, quality) automatically.
+
+## 1. Configuration
+
+Create or update your `netlify.toml` file in the project root to enable the image service and allow remote images (if needed).
+
+```toml netlify.toml
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[images]
+  remote_images = ["*"]  # Allows optimizing images from any external domain
+```
+
+## 2. Utility Function
+
+Create a utility to generate the optimized URLs. This function detects if the app is running locally (to bypass CDN) or in production.
+
+**File:** `src/utils/imageOptimizer.ts`
+
+```typescript src/utils/imageOptimizer.ts
+export interface ImageOptimizationProps {
+    src: string;
+    width?: number;
+    height?: number;
+    quality?: number; // 1-100
+    format?: 'avif' | 'jpg' | 'png' | 'webp';
+    fit?: 'contain' | 'cover' | 'fill';
+}
+
+/**
+ * Transforms an image URL to use Netlify's Image CDN
+ */
+export const getOptimizedImageUrl = ({
+    src,
+    width,
+    height,
+    quality,
+    format,
+    fit,
+}: ImageOptimizationProps): string => {
+    // Return original source if in local development or invalid
+    if (import.meta.env.DEV || !src) {
+        return src;
+    }
+
+    // Avoid double-processing
+    if (src.includes('/.netlify/images')) {
+        return src;
+    }
+
+    const params = new URLSearchParams();
+    params.set('url', src);
+
+    if (width) params.set('w', width.toString());
+    if (height) params.set('h', height.toString());
+    if (quality) params.set('q', quality.toString());
+    if (format) params.set('fm', format);
+    if (fit) params.set('fit', fit);
+
+    return `/.netlify/images?${params.toString()}`;
+};
+```
+
+## 3. React Component
+
+Create a reusable component wrapper (`<NetlifyImage />`) to easily use the optimization logic.
+
+**File:** `src/components/NetlifyImage.tsx`
+
+```tsx src/components/NetlifyImage.tsx
+import React from 'react';
+import { getOptimizedImageUrl, ImageOptimizationProps } from '../utils/imageOptimizer';
+
+interface NetlifyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+    cdnOptions?: Omit<ImageOptimizationProps, 'src'>;
+}
+
+export const NetlifyImage: React.FC<NetlifyImageProps> = ({ 
+    src, 
+    cdnOptions = {}, 
+    className, 
+    alt, 
+    ...props 
+}) => {
+    const optimizedSrc = src ? getOptimizedImageUrl({ src, ...cdnOptions }) : '';
+
+    return (
+        <img
+            src={optimizedSrc}
+            alt={alt}
+            className={className}
+            {...props}
+        />
+    );
+};
+
+export default NetlifyImage;
+```
+
+## 4. Usage
+
+Replace standard `<img>` tags with `<NetlifyImage />` and provide `cdnOptions`.
+
+```tsx
+import NetlifyImage from './components/NetlifyImage';
+import heroImage from './assets/hero.jpg';
+
+// ... inside your component
+<NetlifyImage
+    src={heroImage}
+    alt="Hero Background"
+    className="w-full h-full object-cover"
+    cdnOptions={{ 
+        width: 1920, 
+        format: 'webp',
+        quality: 80 
+    }}
+/>
+```

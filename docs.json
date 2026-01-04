@@ -49,7 +49,8 @@
             "pages": [
               "integrations/gohighlevel",
               "integrations/gohighlevel-bulk-setup",
-              "integrations/cloudflare-turnstile"
+              "integrations/cloudflare-turnstile",
+              "integrations/netlify-image-cdn"
             ]
           },
           {
