@@ -41,7 +41,9 @@
           {
             "group": "Architecture",
             "pages": [
-              "architecture/rules"
+              "architecture/rules",
+              "architecture/react-best-practices",
+              "architecture/react-best-practices-full"
             ]
           },
           {

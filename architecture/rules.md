@@ -69,11 +69,21 @@ Third-Party Scripts
 Constraint: All tracking scripts (GTM, Pixels) must be loaded via next/script with strategy="afterInteractive" to prevent blocking the hydration.
 
 
+## 5. Performance Standards
+
+This project adheres to the **Vercel React Best Practices** for performance optimization. 
+
+- **Eliminate Waterfalls**: Avoid sequential data fetching.
+- **Bundle Size**: Minimize JS payload by avoiding barrel file imports and using direct sub-module imports.
+- **Server-Side**: Prioritize Server Components and Server Actions.
+
+[Read the full React Best Practices guide](file:///Users/mauriciovalencia/Library/CloudStorage/GoogleDrive-mauricio@stokeleads.com/My%20Drive/StokeLeads/Code/00%20-%20DEVELOPMENT/docs/architecture/react-best-practices.mdx) for detailed rules and implementation examples.
+
 ***
 
 ### How to use this with Gemini 3
 When you start a new chat session to work on a feature, you can "prime" the agent with this single instruction:
 
-> *"Read `architecture/rules.mdx` before generating any code. Ensure you strictly follow the constraints regarding Server Actions and Tailwind v4 syntax."*
+> *"Read `architecture/rules.mdx` and `architecture/react-best-practices.mdx` before generating any code. Ensure you strictly follow the constraints regarding Server Actions, Tailwind v4 syntax, and React performance standards."*
 
-This prevents 90% of the "cleanup" work where the AI writes outdated code.
+This prevents 90% of the "cleanup" work where the AI writes outdated or unoptimized code.
