@@ -1,14 +1,16 @@
-# Email Deployment SOP (Standard Operating Procedure)
+# Email Deployment SOP
 
-This guide explains how to efficiently create and deploy email templates to HighLevel using our custom CLI tools.
+This guide explains how to efficiently create and deploy email templates to HighLevel using the **2-Step Upsert** methodology.
 
 ## The Problem
+
 HighLevel's API can be finicky. Sometimes creating a template via `POST` doesn't save the HTML content correctly, resulting in a blank "default" template.
 
-## The Solution: The "2-Step Upsert" Method
+## The Solution: 2-Step Upsert
+
 Our system solves this by:
-1.  **Creating a "Shell"**: First, we create the template with just the name (metadata).
-2.  **Patching Content**: Immediately after, we push the full HTML content via a `PATCH` request. This guarantees the content sticks.
+1. **Creating a "Shell"**: First, we create the template with just the name (metadata).
+2. **Patching Content**: Immediately after, we push the full HTML content via a `PATCH` request. This guarantees the content sticks.
 
 ---
 
@@ -16,29 +18,43 @@ Our system solves this by:
 
 ### Option 1: Quick Scripts (Recommended for One-Offs)
 
-We have created a master template script for deploying emails.
+We have created a master template script for deploying emails from the command line.
 
-**Location:** `scripts/deploy-email-template.cjs`
+**Location:** `integrations/scripts/deploy_ghl_email_template.js`
 
 **Steps:**
-1.  **Duplicate** the template file:
-    ```bash
-    cp scripts/deploy-email-template.cjs scripts/deploy-my-new-offer.cjs
-    ```
-2.  **Edit** the configuration section at the top of the new file:
-    ```javascript
-    // ==========================================
-    // EMAIL DETAILS - UPDATE THIS SECTION
-    // ==========================================
-    const TEMPLATE_NAME = 'My New Offer';
-    const SUBJECT_LINE = 'My catchy subject line';
-    // ...
-    const HTML_CONTENT = `<html>...your HTML here...</html>`;
-    ```
-3.  **Run** the script:
-    ```bash
-    node scripts/deploy-my-new-offer.cjs
-    ```
+
+1. **Duplicate** the template file:
+   ```bash
+   cp integrations/scripts/deploy_ghl_email_template.js integrations/scripts/deploy-my-offer.js
+   ```
+
+2. **Edit** the configuration section at the top of the new file:
+   ```javascript
+   // ==========================================
+   // EMAIL DETAILS - UPDATE THIS SECTION
+   // ==========================================
+   const TEMPLATE_NAME = 'My Offer Email';
+   const SUBJECT_LINE = 'Subject here';
+   const FROM_NAME = 'Your Name';
+   const FROM_EMAIL = 'you@stokeleads.com';
+   const PREVIEW_TEXT = 'Preview text...';
+   
+   const HTML_CONTENT = `
+   <html>
+     <body>
+       <p>Hi {{contact.first_name}},</p>
+       <p>Your content here...</p>
+       <p>Best,<br>Mauricio</p>
+     </body>
+   </html>
+   `;
+   ```
+
+3. **Run** the script:
+   ```bash
+   node integrations/scripts/deploy-my-offer.js
+   ```
 
 ### Option 2: Using the TypeScript Service (For App Integration)
 
@@ -48,7 +64,7 @@ If you are building this into the React app or a larger system, use the `emailTe
 
 **Usage:**
 ```typescript
-import { upsertTemplate } from './src/services/emailTemplateService';
+import { upsertTemplate } from '@/services/emailTemplateService';
 
 // This function handles the 2-step logic automatically!
 await upsertTemplate(
@@ -56,11 +72,40 @@ await upsertTemplate(
   'My Template Name',
   {
     subjectLine: 'Subject',
+    fromName: 'Your Name',
+    fromEmail: 'your@email.com',
+    previewText: 'Preview text...',
     editorContent: '<html>...</html>',
     editorType: 'html',
-    // ... other fields
   }
 );
+```
+
+---
+
+## Deployment via Server Action
+
+For form submissions in the Next.js app, use a Server Action that calls the TypeScript service:
+
+```typescript
+'use server'
+
+import { upsertTemplate } from '@/services/emailTemplateService';
+
+export async function deployEmail(formData: FormData) {
+  const locationId = process.env.VITE_HIGHLEVEL_LOCATION_ID;
+  const apiKey = process.env.VITE_HIGHLEVEL_TOKEN;
+  
+  return await upsertTemplate(
+    locationId,
+    formData.get('templateName'),
+    {
+      subjectLine: formData.get('subject'),
+      editorContent: formData.get('html'),
+      editorType: 'html',
+    }
+  );
+}
 ```
 
 ---
@@ -68,23 +113,42 @@ await upsertTemplate(
 ## Troubleshooting
 
 ### "My email is blank / default template"
-**Cause:** The `POST` request failed to save the content.
-**Fix:** Ensure you are using the **2-step** process (Create -> Patch) or the `upsertTemplate` function which does this for you.
+**Cause:** The `POST` request failed to save the content.  
+**Fix:** Ensure you are using the **2-step** process (Create → Patch) or the `upsertTemplate` function.
 
 ### "Duplicate templates created"
-**Cause:** The script didn't find the existing template correctly before creating a new one.
-**Fix:** Our updated scripts now search by name first. Always use `upsertTemplate` logic.
+**Cause:** The script didn't find the existing template correctly before creating a new one.  
+**Fix:** Our scripts now search by name first. Always use `upsertTemplate` logic.
 
 ### "401 Unauthorized"
-**Cause:** Invalid API Token.
-**Fix:** Check your `.env` file for `VITE_HIGHLEVEL_TOKEN`.
+**Cause:** Invalid API Token.  
+**Fix:** Verify `VITE_HIGHLEVEL_TOKEN` in your `.env.local` file.
+
+### "LOCATION_ID not found"
+**Cause:** Missing GoHighLevel location ID.  
+**Fix:** Check `VITE_HIGHLEVEL_LOCATION_ID` in your environment variables.
 
 ---
 
 ## Key Files Reference
 
-*   `scripts/deploy-email-template.cjs` - Master script for creating new emails
-*   `src/services/emailTemplateService.ts` - Core service logic (Source of Truth)
+* **Master Script:** `integrations/scripts/deploy_ghl_email_template.js` — Node.js template for email deployment
+* **TypeScript Service:** `src/services/emailTemplateService.ts` — Core service logic (Source of Truth)
+* **Script Documentation:** `integrations/scripts/README.md` — Full script usage guide
+* **Detailed SOP:** `integrations/scripts/email-deployment.md` — Complete methodology explanation
+
+---
+
+## Environment Variables Required
+
+```bash
+VITE_HIGHLEVEL_TOKEN=your_api_key_here
+VITE_HIGHLEVEL_LOCATION_ID=your_location_id_here
+```
+
+<Note>
+Never commit API keys to version control. Use `.env.local` or Netlify environment variables in production.
+</Note>
 
 ---
 
