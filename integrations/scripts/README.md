@@ -1,10 +1,30 @@
 # GoHighLevel Bulk Setup Scripts
 
-This folder contains Python scripts for automating GoHighLevel configuration across multiple locations.
+This folder contains Python and Node.js scripts for automating GoHighLevel configuration and deployment.
 
 ## Scripts
 
-### `create_ghl_custom_fields.py`
+### `deploy_ghl_email_template.js` (Node.js)
+**New!** A robust script for deploying email templates that uses a "2-Step Upsert" method (Create Shell -> Patch Content) to ensure HTML content is saved correctly.
+
+**Use for:**
+- Creating new email templates
+- Updating existing templates without duplication
+- Managing email copy as code
+
+**Usage:**
+```bash
+# 1. Duplicate template
+cp deploy_ghl_email_template.js deploy-my-new-offer.js
+
+# 2. Edit content in new file
+# ...
+
+# 3. Run
+node deploy-my-new-offer.js
+```
+
+### `create_ghl_custom_fields.py` (Python)
 Batch creates custom fields (dropdowns, multi-select, text fields) for contact data capture.
 
 **Use for:**
@@ -13,7 +33,7 @@ Batch creates custom fields (dropdowns, multi-select, text fields) for contact d
 - Lead source tracking
 - Project categorization
 
-### `create_ghl_custom_values.py`
+### `create_ghl_custom_values.py` (Python)
 Batch creates custom values (reusable data snippets) for use in workflows and templates.
 
 **Use for:**
@@ -25,30 +45,19 @@ Batch creates custom values (reusable data snippets) for use in workflows and te
 
 ## Quick Start
 
+### Python Scripts
 1. **Install Python 3.7+**
-   ```bash
-   python --version
-   ```
+2. **Install requests:** `pip install requests`
+3. **Configure & Run:** `python create_ghl_custom_fields.py`
 
-2. **Install required package**
-   ```bash
-   pip install requests
-   ```
-
-3. **Configure scripts**
-   - Add your Private Integration token
-   - Add your Location IDs
-   - Customize fields/values as needed
-
-4. **Run scripts**
-   ```bash
-   python create_ghl_custom_fields.py
-   python create_ghl_custom_values.py
-   ```
+### Node.js Scripts
+1. **Install Node.js 14+**
+2. **Configure & Run:** `node deploy_ghl_email_template.js`
 
 ## Documentation
 
-For complete documentation, see: [Bulk Custom Fields Setup Guide](/integrations/gohighlevel-bulk-setup)
+- **Email Deployment SOP:** [Read the full guide](./email-deployment.md)
+- **Bulk Setup:** [Bulk Custom Fields Setup Guide](/integrations/gohighlevel-bulk-setup)
 
 ## Security
 
@@ -59,9 +68,3 @@ Consider using environment variables:
 import os
 ACCESS_TOKEN = os.getenv("GHL_API_TOKEN")
 ```
-
-## Support
-
-For issues or questions, refer to:
-- [GoHighLevel API Documentation](https://highlevel.stoplight.io/)
-- [Main Integration Guide](/integrations/gohighlevel)

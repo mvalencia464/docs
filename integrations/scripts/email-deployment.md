@@ -1,0 +1,91 @@
+# Email Deployment SOP (Standard Operating Procedure)
+
+This guide explains how to efficiently create and deploy email templates to HighLevel using our custom CLI tools.
+
+## The Problem
+HighLevel's API can be finicky. Sometimes creating a template via `POST` doesn't save the HTML content correctly, resulting in a blank "default" template.
+
+## The Solution: The "2-Step Upsert" Method
+Our system solves this by:
+1.  **Creating a "Shell"**: First, we create the template with just the name (metadata).
+2.  **Patching Content**: Immediately after, we push the full HTML content via a `PATCH` request. This guarantees the content sticks.
+
+---
+
+## How to Deploy a New Email
+
+### Option 1: Quick Scripts (Recommended for One-Offs)
+
+We have created a master template script for deploying emails.
+
+**Location:** `./deploy_ghl_email_template.js`
+
+**Steps:**
+1.  **Duplicate** the template file:
+    ```bash
+    cp deploy_ghl_email_template.js deploy-my-new-offer.js
+    ```
+2.  **Edit** the configuration section at the top of the new file:
+    ```javascript
+    // ==========================================
+    // EMAIL DETAILS - UPDATE THIS SECTION
+    // ==========================================
+    const TEMPLATE_NAME = 'My New Offer';
+    const SUBJECT_LINE = 'My catchy subject line';
+    // ...
+    const HTML_CONTENT = `<html>...your HTML here...</html>`;
+    ```
+3.  **Run** the script:
+    ```bash
+    node deploy-my-new-offer.js
+    ```
+
+### Option 2: Using the TypeScript Service (For App Integration)
+
+If you are building this into the React app or a larger system, use the `emailTemplateService`.
+
+**Location:** `src/services/emailTemplateService.ts`
+
+**Usage:**
+```typescript
+import { upsertTemplate } from './src/services/emailTemplateService';
+
+// This function handles the 2-step logic automatically!
+await upsertTemplate(
+  locationId,
+  'My Template Name',
+  {
+    subjectLine: 'Subject',
+    editorContent: '<html>...</html>',
+    editorType: 'html',
+    // ... other fields
+  }
+);
+```
+
+---
+
+## Troubleshooting
+
+### "My email is blank / default template"
+**Cause:** The `POST` request failed to save the content.
+**Fix:** Ensure you are using the **2-step** process (Create -> Patch) or the `upsertTemplate` function which does this for you.
+
+### "Duplicate templates created"
+**Cause:** The script didn't find the existing template correctly before creating a new one.
+**Fix:** Our updated scripts now search by name first. Always use `upsertTemplate` logic.
+
+### "401 Unauthorized"
+**Cause:** Invalid API Token.
+**Fix:** Check your `.env` file for `VITE_HIGHLEVEL_TOKEN`.
+
+---
+
+## Key Files Reference
+
+*   `./deploy_ghl_email_template.js` - Master script for creating new emails
+*   `src/services/emailTemplateService.ts` - Core service logic (Source of Truth)
+
+---
+
+**Last Updated:** February 12, 2026

@@ -1,0 +1,89 @@
+---
+title: "The Core 30 Strategy"
+description: "Systematic AI-powered local SEO strategy to maximize presence in the Google Maps 'Map Pack'."
+icon: "map-location-dot"
+---
+
+<Note>
+**Objective**
+The central premise of Core 30 is that the **website structure must exactly match the Google Business Profile (GBP)** to build trust and authority. The goal of every URL created is solely to rank the GBP higher, not necessarily to rank the pages organically.
+</Note>
+
+## Strategy Breakdown
+
+The "Core 30" refers to creating ~30 dedicated pages that perfectly mirror the services and categories listed on the GBP. This creates a tight semantic match between your digital entities.
+
+<Steps>
+  <Step title="Phase 1: GBP Optimization" icon="store">
+    Before building the site, maximize the content and categorization of the client's Google Business Profile.
+
+    1. **Primary Category**: Select the single most important service (e.g., *Plumber*).
+    2. **Secondary Categories**: Select 3-5 highly relevant categories (e.g., *Drain Services Provider*, *Gas Contractor*).
+    3. **Services**: Add **20-30 specific services**. Unlike categories, these are custom text entries (e.g., *Tankless Water Heater Installation*).
+  </Step>
+
+  <Step title="Phase 2: Website Structure (3 Layers)" icon="sitemap">
+    Construct the website to mirror the GBP in three distinct layers.
+
+    ### Layer 1: The GBP Landing Page (Homepage)
+    *   **Definition**: The URL listed in the "Website" field on the GBP.
+    *   **Target Keyword**: Primary Category + City Name (e.g., *"Plumber Houston"*).
+    *   **Role**: Acts as the linking hub.
+
+    ### Layer 2: Secondary Category Pages
+    *   **Content**: ~1,500 words optimized for Category + City Name (e.g., *"Water Heater Houston"*).
+    *   **Linking Rule**: The homepage must link to these via **plain text links in the body copy**, NOT just the navigation bar.
+    *   **Structure**: These pages list all specific services relevant to that category as subheadings.
+
+    ### Layer 3: Deep Service Pages
+    *   **Content**: Deep, long-form page dedicated exclusively to one specific service.
+    *   **Linking**: Linked from the Layer 2 Category Page under the corresponding subheading (with a 60-70 word intro).
+    *   **SEO Goal**: The Title Tag and H1 must match the specific GBP service name exactly.
+  </Step>
+
+  <Step title="Phase 3: Trust & Relevance" icon="link">
+    Build authority through strategic external linking and hyper-local content.
+
+    <AccordionGroup>
+      <Accordion title="Trust Signals (Backlinks)" icon="shield-check">
+        **1. PBN Links (Foundation)**
+        *   **Quantity**: One link to every Core 30 page (30 total).
+        *   **Purpose**: Signal to Google that content is not "raw AI slop". These do not build rank but validate existence.
+
+        **2. High-Quality Local Trust Links (Rank Builders)**
+        *   **Primary Source**: Local Chamber of Commerce.
+        *   **Secondary Sources**: Sponsorships (Little League, Charities, Local Events).
+        *   **Target**: These links should point to the **GBP Landing Page** (Homepage).
+      </Accordion>
+
+      <Accordion title="Geographical Relevance" icon="location-dot">
+        *Required for highly competitive markets (e.g., Chicago).*
+
+        *   **Targeting**: Neighborhoods where the client ranks #4 or #5.
+        *   **Content**: "Service + Neighborhood + City" (e.g., *"Plumber Conquered Hills Fort Wayne"*).
+        *   **Details**: Include driving directions from that neighborhood to the GBP address, local weather, and specific local projects.
+      </Accordion>
+    </AccordionGroup>
+  </Step>
+
+  <Step title="Phase 4: AI & Voice Search Readiness" icon="robot">
+    Optimize for ChatGPT, Bing, and Apple Maps.
+
+    *   **Bing for Business**: Essential for ChatGPT recognition (since it uses Bing's index).
+    *   **Citations**: NAP (Name, Address, Phone) must be character-perfect across Bing, Apple Maps, and Yelp. Use tools like *Lead Snap*.
+    *   **Schema Markup**: Feed specific data (settlements, specialties) via Schema, as LLMs read labels, not just links.
+  </Step>
+</Steps>
+
+## Implementation Checklist for Developers
+
+When building a StokeLeads site, ensure you follow this exact hierarchy:
+
+1.  **Map the GBP**: Get the list of 1 Primary Category, 5 Secondary Categories, and 30 Services.
+2.  **Create URLs**:
+    *   `domain.com/` (Target: Primary Category)
+    *   `domain.com/secondary-category-1`
+    *   `domain.com/secondary-category-1/service-1`
+    *   ...
+3.  **Interlink**: Ensure Layer 1 -> Layer 2 links are **in the text**.
+4.  **Validate**: Ensure H1s match GBP service names 1:1.

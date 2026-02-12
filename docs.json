@@ -23,6 +23,12 @@
             ]
           },
           {
+            "group": "Strategies & SOPs",
+            "pages": [
+              "strategies/core-30"
+            ]
+          },
+          {
             "group": "Customization",
             "pages": [
               "essentials/settings",
