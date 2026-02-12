@@ -1,3 +1,9 @@
+---
+title: "React Best Practices (Full)"
+description: "40+ Exhaustive Performance optimization guidelines from Vercel Engineering with detailed code examples"
+icon: "react"
+---
+
 # React Best Practices
 
 **Version 1.0.0**  
